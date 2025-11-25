@@ -10,41 +10,38 @@ import {
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 
-interface Fazenda {
+interface Vacinas {
   id: number;
   nome: string;
-  endereco: string;
-  municipio: string;
-  uf: string;
-  proprietario_id: number;
-  proprietario: string;
+  fabricante: string;
+  dose_ml: string;
 }
 
-export default function ProprietariosScreens() {
-  const [lista, setLista] = useState<Fazenda[]>([]);
-  const [listaFiltrada, setListaFiltrada] = useState<Fazenda[]>([]);
+export default function VacinasScreens() {
+  const [lista, setLista] = useState<Vacinas[]>([]);
+  const [listaFiltrada, setListaFiltrada] = useState<Vacinas[]>([]);
   const [inputNome, setInputNome] = useState("");
   const [mensagem, setMensagem] = useState("");
 
-  async function buscarFazendas() {
+  async function buscarVacinas() {
     try {
       const resultado = await axios.get(
-        "https://apivacinacao.dev.vilhena.ifro.edu.br/fazendas"
+        "https://apivacinacao.dev.vilhena.ifro.edu.br/vacinas"
       );
 
       setLista(resultado.data);
       setListaFiltrada(resultado.data);
 
       if (resultado.data.length === 0) {
-        setMensagem("Nenhum proprietário encontrado.");
+        setMensagem("Nenhuma vacina encontrado.");
       }
     } catch (e) {
-      setMensagem("Erro ao carregar proprietários.");
+      setMensagem("Erro ao carregar vacinas.");
       console.error(e);
     }
   }
 
-  function buscarPorProprietario(nome: string) {
+  function buscarPorVacina(nome: string) {
     if (nome.trim() === "") {
       setListaFiltrada(lista);
       setMensagem("");
@@ -52,28 +49,28 @@ export default function ProprietariosScreens() {
     }
 
     const filtrada = lista.filter((item) =>
-      item.proprietario.toLowerCase().includes(nome.toLowerCase())
+      item.nome.toLowerCase().includes(nome.toLowerCase())
     );
 
     setListaFiltrada(filtrada);
 
     if (filtrada.length === 0) {
-      setMensagem("Nenhum proprietário encontrado com esse nome.");
+      setMensagem("Nenhuma vacina encontrada com esse nome.");
     } else {
       setMensagem("");
     }
   }
 
   useEffect(() => {
-    buscarFazendas();
+    buscarVacinas();
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Proprietários</Text>
+      <Text style={styles.titulo}>Vacinas</Text>
 
       <TextInput
-        placeholder="Pesquisar por nome do proprietário"
+        placeholder="Pesquisar por nome da vacina"
         placeholderTextColor="#A8C3E5"
         value={inputNome}
         onChangeText={(t) => {
@@ -84,7 +81,7 @@ export default function ProprietariosScreens() {
 
       <TouchableOpacity
         style={styles.botao}
-        onPress={() => buscarPorProprietario(inputNome)}
+        onPress={() => buscarPorVacina(inputNome)}
       >
         <Text style={styles.textoBotao}>Buscar</Text>
       </TouchableOpacity>
@@ -95,11 +92,9 @@ export default function ProprietariosScreens() {
         data={listaFiltrada}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.nome}>{item.proprietario}</Text>
-            <Text style={styles.infoFazenda}>Fazenda: {item.nome}</Text>
-            <Text style={styles.infoLocal}>
-              {item.municipio} - {item.uf}
-            </Text>
+            <Text style={styles.nome}>{item.nome}</Text>
+            <Text style={styles.infoVacina}>Fabricante: {item.fabricante}</Text>
+            <Text style={styles.infoDose}>Dose em ml: {item.dose_ml}</Text>
           </View>
         )}
         ListEmptyComponent={
@@ -179,13 +174,13 @@ const styles = StyleSheet.create({
     color: "#1B4F72",
   },
 
-  infoFazenda: {
+  infoVacina: {
     fontSize: 16,
     color: "#2E86C1",
     marginTop: 5,
   },
 
-  infoLocal: {
+  infoDose: {
     fontSize: 15,
     color: "#21618C",
   },
