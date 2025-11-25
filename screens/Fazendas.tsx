@@ -14,26 +14,34 @@ interface Fazendas {
 }
 
 export default function FazendasScreens() {
-    const [fazendas, setFazendas] = useState<Fazendas[]>([])
-    const [nomeInput, setNomeInput] = React.useState("")
+    const [fazendas, setFazendas] = useState<Fazendas[]>([]);
+    const [fazendasFiltradas, setFazendasFiltradas] = useState<Fazendas[]>([]);
+    const [mensagem, setMensagem] = useState(String);
+    const [nomeInput, setNomeInput] = React.useState("");
     async function buscarFazendas() {
         try {
             let resultado = await axios.get('https://apivacinacao.dev.vilhena.ifro.edu.br/fazendas')
             setFazendas(resultado.data)
+            setFazendasFiltradas(resultado.data)
+            if (resultado.data.length == 0) {
+                setMensagem("Nenhuma fazenda encontrada.")
+            }
         } catch (error) {
+            setMensagem("Erro ao buscar fazendas.")
             console.error(error)
         }
 
     }
 
-    async function buscarPorNome(nome:string) {
+    async function buscarPorNome(nome: string) {
         try {
-            buscarFazendas();
             if (nome !== "") {
-               let listaFiltrada = fazendas.filter((item) => item.nome == nome) 
-               setFazendas(listaFiltrada)
+                let listaFiltrada = fazendas.filter((item) => item.nome.toLocaleLowerCase().includes(nome.toLocaleLowerCase()))
+                if (listaFiltrada.length == 0) {
+                    setMensagem("Nenhuma fazenda com esse nome encontrada.")
+                    setFazendasFiltradas(listaFiltrada)
+                }
             }
-            
         } catch (error) {
             console.error(error)
         }
@@ -44,16 +52,18 @@ export default function FazendasScreens() {
     return (
         <View style={styles.container}>
             <Text>Fazendas</Text>
-            <TextInput placeholder='Pesquise a fazenda por nome' value={nomeInput} onChangeText={text => setFazendas(text)}/>
-            <Button title='Pesquisar'/> 
+            <TextInput placeholder='Pesquise a fazenda por nome' onChangeText={buscarPorNome} />
             <FlatList
-                data={fazendas}
-                renderItem={({item, index}) => (
+                data={fazendasFiltradas}
+                renderItem={({ item, index }) => (
                     <View key={index}>
                         <Text>{item.nome}</Text>
                         <Text>{item.proprietario}</Text>
-                    </View> 
+                    </View>
                 )}
+                ListEmptyComponent={
+                    <View><Text>{mensagem}</Text></View>
+                }
             />
         </View>
     );
